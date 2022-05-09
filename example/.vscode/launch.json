@@ -8,6 +8,11 @@
             "name": "Flutter",
             "request": "launch",
             "type": "dart"
+        },
+        {
+            "name": "Android Dev",
+            "request": "launch",
+            "type": "dart",
         }
     ]
 }

@@ -4,10 +4,60 @@ import 'package:pip_view/pip_view.dart';
 void main() => runApp(ExampleApp());
 
 class ExampleApp extends StatelessWidget {
+  bool alreadyAddedOverlays = false;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomeScreen(),
+              title: 'App',
+              home: LayoutBuilder(
+                builder: (layoutContext, constraints) {
+                  WidgetsBinding.instance?.addPostFrameCallback((_) {
+                    if (alreadyAddedOverlays) {
+                      return;
+                    }
+
+                    Overlay.of(context)?.insert(
+                      OverlayEntry(builder: (context) => HomeScreen()),
+                    );
+
+                    alreadyAddedOverlays = true;
+                  });
+
+                  return FirstScreen();
+                },
+              ),
+    );
+  }
+}
+
+class FirstScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text('This is the first page!'),
+              Text('If you tap on the floating screen, it stops floating.'),
+              Text('Navigation works as expected.'),
+              MaterialButton(
+                color: Theme.of(context).primaryColor,
+                child: Text('Push to floating screen'),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => HomeScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -30,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                     color: Theme.of(context).primaryColor,
                     child: Text('Start floating!'),
                     onPressed: () {
-                      PIPView.of(context)?.presentBelow(BackgroundScreen());
+                      PIPView.of(context)?.present();
                     },
                   ),
                 ],
@@ -39,65 +89,6 @@ class HomeScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class BackgroundScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Text('This is the background page!'),
-              Text('If you tap on the floating screen, it stops floating.'),
-              Text('Navigation works as expected.'),
-              MaterialButton(
-                color: Theme.of(context).primaryColor,
-                child: Text('Push to navigation'),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => NavigatedScreen(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class NavigatedScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Navigated Screen'),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Text('This is the page you navigated to.'),
-              Text('See how it stays below the floating page?'),
-              Text('Just amazing!'),
-              Spacer(),
-              Text('It also avoids keyboard!'),
-              TextField(),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
