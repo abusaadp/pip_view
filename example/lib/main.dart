@@ -1,36 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:pip_view/pip_view.dart';
 
-void main() => runApp(ExampleApp());
+import 'floating_manager.dart';
 
-class ExampleApp extends StatelessWidget {
+void main() => runApp(const ExampleApp());
+
+class ExampleApp extends StatefulWidget {
+  const ExampleApp({Key? key}) : super(key: key);
+
+  @override
+  State<ExampleApp> createState() => _ExampleAppState();
+}
+
+class _ExampleAppState extends State<ExampleApp> {
   bool alreadyAddedOverlays = false;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-              title: 'App',
-              home: LayoutBuilder(
-                builder: (layoutContext, constraints) {
-                  WidgetsBinding.instance?.addPostFrameCallback((_) {
-                    if (alreadyAddedOverlays) {
-                      return;
-                    }
+      title: 'App',
+      home: LayoutBuilder(
+        builder: (layoutContext, constraints) {
+          WidgetsBinding.instance?.addPostFrameCallback((_) {
+            if (alreadyAddedOverlays) {
+              return;
+            }
 
-                    Overlay.of(context)?.insert(
-                      OverlayEntry(builder: (context) => HomeScreen()),
-                    );
+            // use LayoutBuilder's context (LayoutBuilder)
+            Overlay.of(layoutContext)?.insert(
+              OverlayEntry(builder: (context) => const HomeScreen()),
+            );
 
-                    alreadyAddedOverlays = true;
-                  });
+            alreadyAddedOverlays = true;
+          });
 
-                  return FirstScreen();
-                },
-              ),
+          return const FirstScreen();
+        },
+      ),
     );
   }
 }
 
 class FirstScreen extends StatelessWidget {
+  const FirstScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,18 +53,15 @@ class FirstScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('This is the first page!'),
-              Text('If you tap on the floating screen, it stops floating.'),
-              Text('Navigation works as expected.'),
+              const Text('This is the first page!'),
+              const Text(
+                  'If you tap on the floating screen, it stops floating.'),
+              const Text('Navigation works as expected.'),
               MaterialButton(
                 color: Theme.of(context).primaryColor,
-                child: Text('Push to floating screen'),
+                child: const Text('Push to floating screen'),
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => HomeScreen(),
-                    ),
-                  );
+                  FloatingManager.showFull();
                 },
               ),
             ],
@@ -62,29 +72,56 @@ class FirstScreen extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    FloatingManager.listen(() {
+      setState(() {
+        // do something ..
+      });
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // hide floating screen when it is not shown
+    if (!FloatingManager.isShown) {
+      return const SizedBox.shrink();
+    }
+
     return PIPView(
       builder: (context, isFloating) {
-        return Scaffold(
-          resizeToAvoidBottomInset: !isFloating,
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Text('This page will float!'),
-                  MaterialButton(
-                    color: Theme.of(context).primaryColor,
-                    child: Text('Start floating!'),
-                    onPressed: () {
-                      PIPView.of(context)?.present();
-                    },
-                  ),
-                ],
-              ),
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                const Text('This page will float!'),
+                MaterialButton(
+                  color: Theme.of(context).primaryColor,
+                  child: const Text('Start floating!'),
+                  onPressed: () {
+                    FloatingManager.minimize(context);
+                  },
+                ),
+                MaterialButton(
+                  color: Colors.red,
+                  child: const Text('End floating!'),
+                  onPressed: () {
+                    FloatingManager.close();
+                  },
+                ),
+              ],
             ),
           ),
         );
